@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
 
-name: Check code quality and correctness
+name: Code quality
 
 on:
   push:
@@ -32,3 +32,6 @@ jobs:
 
     - name: Check types
       run: uv run mypy --strict .
+
+    - name: Check formatting
+      run: uv run ruff format --check .
