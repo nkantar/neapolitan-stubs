@@ -1,0 +1,63 @@
+[project]
+name = "neapolitan-stubs"
+version = "25.0"
+description = "Type stubs for the awesome Neapolitan package"
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+authors = [
+    { name = "Nik Kantar", email = "nik@nkantar.com" }
+]
+classifiers = [
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Stubs Only"
+]
+requires-python = ">=3.13.0"
+dependencies = [
+    "neapolitan>=24.8",
+]
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://pypi.org/legacy/"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+
+[project.urls]
+Repository = "https://github.com/nkantar/neapolitan-stubs"
+
+[dependency-groups]
+dev = [
+    "django-filter-stubs>=0.1.3",
+    "django-stubs>=5.1.3",
+    "mypy>=1.15.0",
+    "pdbpp>=0.10.3",
+    "pytest>=8.3.5",
+]
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/neapolitan-stubs/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/neapolitan-stubs",
+]
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
