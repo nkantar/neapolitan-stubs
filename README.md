@@ -3,6 +3,7 @@
 Type stubs for the awesome [Neapolitan](https://github.com/carltongibson/neapolitan).
 
 [![neapolitan-stubs](https://img.shields.io/pypi/v/neapolitan-stubs.svg)](https://pypi.org/project/neapolitan-stubs/ "neapolitan-stubs · PyPI")
+[![GitHub Actions](https://github.com/nkantar/neapolitan-stubs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nkantar/neapolita-stubs/actions/workflows/ci.yml)
 
 _This project is still in pretty early development, so keep that in mind before relying on it with blind faith. In fact, some of the type hints are almost certainly incorrect, as this was a fairly tired effort by someone who absolutely isn’t a typing expert. Things will hopefully get better with time._
 
