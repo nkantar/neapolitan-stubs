@@ -59,3 +59,11 @@ include = [
 packages = [
     "src/neapolitan-stubs",
 ]
+
+[tool.mypy]
+plugins = [
+    "mypy_django_plugin.main",
+]
+
+# [tool.django-stubs]
+# django_settings_module = "myproject.settings"
