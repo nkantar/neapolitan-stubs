@@ -1,135 +1,149 @@
-"""Type stubs for Neapolitan. https://github.com/nkantar/neapolitan-stubs"""
+"""Type stubs for Neapolitan views. https://github.com/nkantar/neapolitan-stubs"""
+
+from __future__ import annotations
 
 import builtins
-from enum import Enum
-from typing import Any, Callable, Iterable, Literal, TypedDict, TypeVar
-
-from django.core.paginator import Paginator
-from django.db.models import Model
-from django.db.models.base import ModelBase
-from django.db.models.query import QuerySet
-from django.forms.forms import BaseForm
-from django.http import HttpRequest, HttpResponseBase, HttpResponseRedirect
+import enum
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
+from django.core.paginator import Page, Paginator
+from django.db.models import Model, QuerySet
+from django.forms import ModelForm
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBase,
+    HttpResponseRedirect,
+)
 from django.template.response import TemplateResponse
-from django.urls import URLPattern, URLResolver
-from django.utils.decorators import classonlymethod
+from django.urls import URLPattern
 from django.utils.functional import classproperty
-from django.views import View
-from django_filters.filterset import FilterSet
+from django.views.generic import View
+from django_filters.filterset import BaseFilterSet
 
-_M = TypeVar("_M", bound=Model)
+_ModelT = TypeVar("_ModelT", bound=Model)
 
-class _RoleHandlersReturn(TypedDict):
-    """Return type for Role.handlers."""
+class Role(enum.Enum):
+    """Enum representing different CRUD operations."""
 
-    get: Literal["get", "detail", "show_form", "confirm_delete"]
-    post: Literal["process_form", "process_deletion"] | None
-
-class _RoleExtraInitKwargsReturn(TypedDict):
-    """Return type for Role.extra_initkwargs."""
-
-    template_name_suffix: Literal["_list", "_detail", "_form", "_confirm_delete"]
-
-class Role(Enum):
     LIST = "list"
     CREATE = "create"
     DETAIL = "detail"
     UPDATE = "update"
     DELETE = "delete"
 
-    def handlers(self) -> _RoleHandlersReturn: ...
-    def extra_initkwargs(self) -> _RoleExtraInitKwargsReturn: ...
+    def handlers(self) -> dict[str, str]: ...
+    def extra_initkwargs(self) -> dict[str, str]: ...
     @property
     def url_name_component(self) -> str: ...
-    def url_pattern(self, view_cls: View) -> str: ...
-    def get_url(self, view_cls: View) -> URLPattern | URLResolver: ...
-    def reverse(self, view: View, object: type[_M] | None) -> str: ...
-    def maybe_reverse(self, view: View, object: type[_M] | None) -> str | None: ...
+    def url_pattern(self, view_cls: type[CRUDView[_ModelT]]) -> str: ...
+    def get_url(self, view_cls: type[CRUDView[_ModelT]]) -> URLPattern: ...
+    def reverse(
+        self,
+        view: CRUDView[_ModelT],
+        object: _ModelT | None = None,
+    ) -> str: ...
+    def maybe_reverse(
+        self,
+        view: CRUDView[_ModelT],
+        object: _ModelT | None = None,
+    ) -> str | None: ...
 
-# ======================================================================================
+class CRUDView(View, Generic[_ModelT]):
+    """Base class for CRUD views providing list, detail, create, update, and delete operations."""
 
-class CRUDView(View):
     role: Role
-    model: type[_M] | None
+    model: type[_ModelT] | None
     fields: list[str] | None
 
-    lookup_field: str
-    lookup_url_kwarg: str | None
-    path_converter: str
-    object: ModelBase | None
+    lookup_field: str = "pk"
+    lookup_url_kwarg: str | None = None
+    path_converter: str = "int"
+    object: _ModelT | None = None
 
-    queryset: QuerySet[_M] | None
-    form_class: type[BaseForm] | None
+    queryset: QuerySet[_ModelT] | None
+    form_class: type[ModelForm[_ModelT]] | None
     template_name: str | None
     context_object_name: str | None
 
-    paginate_by: int
-    page_kwarg: str
-    allow_empty: bool
+    paginate_by: int | None = None
+    page_kwarg: str = "page"
+    allow_empty: bool = True
 
-    template_name_suffix: str | None
+    template_name_suffix: str | None = None
+    object_list: QuerySet[_ModelT] | None = None
 
-    def list(
-        self,
-        request: HttpRequest,
-        *args: Any,
-        **kwargs: Any,
-    ) -> TemplateResponse: ...
+    def list(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse: ...
     def detail(
         self,
         request: HttpRequest,
         *args: Any,
         **kwargs: Any,
-    ) -> TemplateResponse: ...
+    ) -> HttpResponse: ...
     def show_form(
         self,
         request: HttpRequest,
         *args: Any,
         **kwargs: Any,
-    ) -> TemplateResponse: ...
+    ) -> HttpResponse: ...
     def process_form(
         self,
         request: HttpRequest,
         *args: Any,
         **kwargs: Any,
-    ) -> HttpResponseRedirect | TemplateResponse: ...
+    ) -> HttpResponse: ...
     def confirm_delete(
         self,
         request: HttpRequest,
         *args: Any,
         **kwargs: Any,
-    ) -> TemplateResponse: ...
+    ) -> HttpResponse: ...
     def process_deletion(
         self,
         request: HttpRequest,
         *args: Any,
         **kwargs: Any,
     ) -> HttpResponseRedirect: ...
-    def get_queryset(self) -> QuerySet[_M]: ...
-    def get_object(self) -> _M: ...
-    def get_form_class(self) -> BaseForm: ...
-    def get_form(self, data=None, files=None, **kwargs: Any) -> BaseForm: ...
-    def form_valid(self, form: BaseForm) -> HttpResponseRedirect: ...
-    def form_invalid(self, form: BaseForm) -> TemplateResponse: ...
+    def get_queryset(self) -> QuerySet[_ModelT]: ...
+    def get_object(self) -> _ModelT: ...
+    def get_form_class(self) -> type[ModelForm[_ModelT]]: ...
+    def get_form(
+        self,
+        data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> ModelForm[_ModelT]: ...
+    def form_valid(self, form: ModelForm[_ModelT]) -> HttpResponseRedirect: ...
+    def form_invalid(self, form: ModelForm[_ModelT]) -> HttpResponse: ...
     def get_success_url(self) -> str: ...
-    def get_paginate_by(self) -> int: ...
-    def get_paginator(self, queryset: QuerySet, page_size: int) -> Paginator: ...
-    def paginate_queryset(self, queryset: QuerySet, page_size: int) -> Paginator: ...
-    def get_filterset(self, queryset: QuerySet) -> FilterSet: ...
-    def get_context_object_name(self, is_list: bool) -> str: ...
+    def get_paginate_by(self) -> int | None: ...
+    def get_paginator(
+        self,
+        queryset: QuerySet[_ModelT],
+        page_size: int,
+    ) -> Paginator[_ModelT]: ...
+    def paginate_queryset(
+        self,
+        queryset: QuerySet[_ModelT],
+        page_size: int,
+    ) -> Page[_ModelT]: ...
+    def get_filterset(
+        self,
+        queryset: QuerySet[_ModelT] | None = None,
+    ) -> BaseFilterSet | None: ...
+    def get_context_object_name(self, is_list: bool = False) -> str | None: ...
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]: ...
     def get_template_names(self) -> builtins.list[str]: ...
-    def render_to_response(self, context: dict[Any, Any]) -> TemplateResponse: ...
-    @classonlymethod
-    def as_view(
+    def render_to_response(self, context: dict[str, Any]) -> TemplateResponse: ...
+    @classmethod
+    def as_view(  # type: ignore[override]
         cls,
         role: Role,
         **initkwargs: Any,
-    ) -> Callable[
-        [HttpRequest, Any, Any],
-        Callable[[HttpRequest, Any, Any], HttpResponseBase],
-    ]: ...
-    @classproperty
-    def url_base(cls) -> str: ...
-    @classonlymethod
-    def get_urls(cls, roles: Iterable | None) -> Iterable[URLPattern | URLResolver]: ...
+    ) -> Callable[..., HttpResponseBase]: ...
+    url_base: classproperty[str]
+    @classmethod
+    def get_urls(
+        cls,
+        roles: builtins.list[Role] | None = None,
+    ) -> builtins.list[URLPattern]: ...

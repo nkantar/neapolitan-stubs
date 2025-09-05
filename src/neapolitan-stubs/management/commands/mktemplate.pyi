@@ -1,11 +1,11 @@
-"""Type stubs for Neapolitan. https://github.com/nkantar/neapolitan-stubs"""
+"""Type stubs for Neapolitan management commands. https://github.com/nkantar/neapolitan-stubs"""
 
 from typing import Any
-
-from django.core.management.base import BaseCommand, CommandParser
+from argparse import ArgumentParser
+from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):
-    help = "Bootstrap a CRUD template for a model, copying from the active neapolitan default templates."
+    help: str
 
-    def add_arguments(self, parser: CommandParser) -> None: ...
+    def add_arguments(self, parser: ArgumentParser) -> None: ...
     def handle(self, *args: Any, **options: Any) -> None: ...

@@ -1,29 +1,15 @@
-"""Type stubs for Neapolitan. https://github.com/nkantar/neapolitan-stubs"""
+"""Type stubs for Neapolitan templatetags. https://github.com/nkantar/neapolitan-stubs"""
 
-from typing import Any, Iterable, TypeVar, TypedDict
-
+from typing import Any, TypeVar
 from django.db.models import Model
+from django.template import Library
 from django.utils.safestring import SafeString
-from django.views import View
+from neapolitan.views import CRUDView
 
-_M = TypeVar("_M", bound=Model)
+_ModelT = TypeVar("_ModelT", bound=Model)
 
-class ObjectDetail(TypedDict):
-    object: tuple[str, str]
+register: Library
 
-class ObjectListEntry(TypedDict):
-    object: type[_M]
-    fields: list[str]
-    actions: SafeString
-
-class HeadersAndObjectList(TypedDict):
-    headers: Iterable[str]
-    object_list: list[ObjectListEntry]
-
-register: Any
-
-def action_links(view: View, object: type[_M]) -> SafeString: ...
-@register.inclusion_tag("neapolitan/partial/detail.html")
-def object_detail(object: type[_M], fields: Iterable[str]) -> ObjectDetail: ...
-@register.inclusion_tag("neapolitan/partial/list.html")
-def object_list(objects: type[_M], view: View) -> HeadersAndObjectList: ...
+def action_links(view: CRUDView[_ModelT], object: _ModelT) -> SafeString: ...
+def object_detail(object: _ModelT, fields: list[str]) -> dict[str, Any]: ...
+def object_list(objects: list[_ModelT], view: CRUDView[_ModelT]) -> dict[str, Any]: ...
